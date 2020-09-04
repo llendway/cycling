@@ -1,0 +1,212 @@
+---
+title: "gganimate"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(error = TRUE, warning=FALSE, message=FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(gganimate)
+library(plotKML)
+library(lubridate)
+library(maps) 
+library(ggmap)
+library(gifski)
+library(ggthemes)
+```
+
+
+All the rides
+```{r}
+day1 <- readGPX("activity_2547865701.gpx")
+day1_clean <- day1[["tracks"]][[1]][["Sóller Cycling"]] %>% 
+  mutate(ele.num = as.numeric(ele),
+         date = ymd(str_sub(time, start=1,end=10)),
+         hrminsec = ymd_hms(paste(date,str_sub(time, start=12,end=19))))
+
+day2 <- readGPX("activity_2548786446.gpx")
+day2_clean <- day2[["tracks"]][[1]][["Sóller Cycling"]] %>% 
+  mutate(ele.num = as.numeric(ele),
+         date = ymd(str_sub(time, start=1,end=10)),
+         hrminsec = ymd_hms(paste(date,str_sub(time, start=12,end=19))))
+
+day3 <- readGPX("activity_2551785464.gpx")
+day3_clean <- day3[["tracks"]][[1]][["Escorca Cycling"]] %>% 
+  mutate(ele.num = as.numeric(ele),
+         date = ymd(str_sub(time, start=1,end=10)),
+         hrminsec = ymd_hms(paste(date,str_sub(time, start=12,end=19))))
+
+day4 <- readGPX("activity_2553397781.gpx")
+day4_clean <- day4[["tracks"]][[1]][["Sóller Cycling"]] %>% 
+  mutate(ele.num = as.numeric(ele),
+         date = ymd(str_sub(time, start=1,end=10)),
+         hrminsec = ymd_hms(paste(date,str_sub(time, start=12,end=19))))
+
+day5 <- readGPX("activity_2555218196.gpx")
+day5_clean <- day5[["tracks"]][[1]][["Sóller Cycling"]] %>% 
+  mutate(ele.num = as.numeric(ele),
+         date = ymd(str_sub(time, start=1,end=10)),
+         hrminsec = ymd_hms(paste(date,str_sub(time, start=12,end=19))))
+
+day6 <- readGPX("activity_2558444871.gpx")
+day6_clean <- day6[["tracks"]][[1]][["Llucmajor Cycling"]] %>% 
+  mutate(ele.num = as.numeric(ele),
+         date = ymd(str_sub(time, start=1,end=10)),
+         hrminsec = ymd_hms(paste(date,str_sub(time, start=12,end=19))))
+
+day7 <- readGPX("activity_2560446536.gpx")
+day7_clean <- day7[["tracks"]][[1]][["Esporles Cycling"]] %>% 
+  mutate(ele.num = as.numeric(ele),
+         date = ymd(str_sub(time, start=1,end=10)),
+         hrminsec = ymd_hms(paste(date,str_sub(time, start=12,end=19))))
+
+day8 <- readGPX("activity_2560918647.gpx")
+day8_clean <- day8[["tracks"]][[1]][["Sóller Cycling"]] %>% 
+  mutate(ele.num = as.numeric(ele),
+         date = ymd(str_sub(time, start=1,end=10)),
+         hrminsec = ymd_hms(paste(date,str_sub(time, start=12,end=19))))
+
+mallorca_data <- day1_clean %>% 
+  bind_rows(day2_clean,
+            day3_clean,
+            day4_clean,
+            day5_clean,
+            day6_clean,
+            day7_clean,
+            day8_clean,
+            .id = "day_of_ride")
+
+
+mallorca_map <- get_stamenmap(
+    bbox = c(left = 2.26, bottom = 39.28, right = 3.55, top = 39.9), 
+    maptype = "terrain",
+    zoom = 11
+)
+```
+
+
+Static map
+```{r}
+ggmap(mallorca_map) +
+  geom_path(data = mallorca_data,
+             mapping=aes(x=lon, y=lat, 
+                         group = day_of_ride, 
+                         color = ele.num)) +
+  facet_wrap(vars(day_of_ride)) +
+  theme_map() +
+  theme(legend.position = "bottom")
+```
+
+
+All the rides ...
+```{r}
+ggmap(mallorca_map) +
+  geom_path(data = mallorca_data,
+             mapping=aes(x=lon, y=lat, 
+                         group = day_of_ride, 
+                         color = ele.num)) +
+  geom_point(data = mallorca_data,
+             aes(x=lon, y=lat, group = day_of_ride), 
+             color = "red", 
+             size = 1.2) +
+  theme_minimal() +
+  transition_reveal(hrminsec)
+
+anim_save("mallorca_all.gif")
+
+```
+
+
+
+
+
+Other stuff (earlier):
+
+```{r}
+soller <- readGPX("/Users/llendway/Documents/personal/mallorca/activity_2555218196.gpx")
+
+sollerdata <- soller[["tracks"]][[1]][["Sóller Cycling"]]
+#glimpse(sollerdata)
+
+sollerdata2 <-
+sollerdata %>% 
+  mutate(ele.num = as.numeric(ele),
+         date = ymd(str_sub(time, start=1,end=10)),
+         hrminsec = ymd_hms(paste(date,str_sub(time, start=12,end=19))))
+
+
+escorca <- readGPX("/Users/llendway/Documents/personal/mallorca/activity_2551785464.gpx")
+
+escorca_data <- escorca[["tracks"]][[1]][["Escorca Cycling"]]
+#glimpse(sollerdata)
+
+escorca_data2 <-
+  escorca_data %>% 
+  mutate(ele.num = as.numeric(ele),
+         date = ymd(str_sub(time, start=1,end=10)),
+         hrminsec = ymd_hms(paste(date,str_sub(time, start=12,end=19))))
+
+
+soller_map <- get_stamenmap(
+    bbox = c(left = 2.6, bottom = 39.72, right = 2.9, top = 39.9), 
+    maptype = "terrain",
+    zoom = 11
+)
+
+escorca_map <- get_stamenmap(
+    bbox = c(left = 2.66, bottom = 39.57, right = 3.3, top = 39.9), 
+    maptype = "terrain",
+    zoom = 11
+)
+
+```
+
+```{r}
+ggmap(soller_map) + 
+  geom_path(data = sollerdata2,
+             mapping=aes(x=lon, y=lat)) +
+  geom_point(data = sollerdata2,
+             aes(x=lon, y=lat), color = "red", size = 1.2) +
+  theme_minimal() +
+  transition_reveal(hrminsec)
+
+anim_save("puig_major.gif")
+```
+
+
+```{r}
+ggmap(escorca_map) + 
+  geom_path(data = escorca_data2,
+             mapping=aes(x=lon, y=lat)) +
+  geom_point(data = escorca_data2,
+             aes(x=lon, y=lat), color = "red", size = 1.2) +
+  theme_minimal() +
+  transition_reveal(hrminsec)
+
+anim_save("escorca.gif")
+```
+
+```{r}
+mallorca_data <- sollerdata2 %>% 
+  bind_rows(escorca_data2, .id = "location") %>% 
+  mutate(fake_time = 1:n())
+```
+
+
+```{r}
+ggmap(mallorca_map) +
+  geom_path(data = mallorca_data,
+             mapping=aes(x=lon, y=lat, group = location)) +
+  geom_point(data = mallorca_data,
+             aes(x=lon, y=lat, group = location), color = "red", size = 1.2) +
+  theme_minimal() +
+  transition_reveal(fake_time)
+
+anim_save("mallorca.gif")
+
+```
+
+
